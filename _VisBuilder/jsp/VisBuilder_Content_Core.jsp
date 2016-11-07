@@ -61,6 +61,9 @@
 
 <web:resource type="javascript" name="libraries/modernizr.js"/>
 
+    <!-- Load libraries for annotations feature, for automation testing -->
+<web:resource type="javascript" name="libraries/jquery-2.0.3.min.js"/>
+
 
 <web:resource type="jsbundle" bundleName="html5-vi" debugBundleName="html5-vi-debug"/>
 <web:ifFeature type="misc" name="jsBundleDebug"><web:then>
@@ -99,6 +102,7 @@ var mstrApp = new mstrmojo.vi.VisualInsightApp({
         getShowVITutorial: function(){return  '2' === '1';},
         helpLocaleId: '<web:connectionValue property="helpLocale"/>',
         helpUrl: '<web:value type="systemPreference" name="helpUrl" />',
+        visBuidlerHelpUrl:'https://lw.microstrategy.com/msdz/MSDL/_CurrentGARelease/docs/projects/VisSDK_All/default.htm',
         httpSessionId: '<web:connectionValue property="containerSessionId" />',
         isShare: <web:value type="requestKey" name="share"/>,
         jsMojoRoot: '../javascript/mojo/js/source/',

@@ -48,9 +48,17 @@ window.isAndroid = !window.isUsingMockupData;
 window.isDebugging = window.isUsingMockupData;
 window.isPlugIn = true;
 
-window.mstrApp = {
-    isSingleTier:false
-};
+if (!window.mstrApp) {
+    window.mstrApp = {  // keep window.mstrApp as Global
+        isSingleTier:false,
+        getThemeClassName: function (){
+            return "mojo-theme-light";
+        },
+        getPluginsRoot: function () {
+            return "../";
+        }
+    };
+}
 
 var widget;
 window.widget = widget;
@@ -243,7 +251,60 @@ function setupWidgetLoader() {
 
                 // widget = new ViewClass(visConfig);
                 if (window.isPlugIn){
-                    widget =  new ViewClass(visConfig);
+                    widget = new ViewClass(visConfig);
+
+                    // D3 Plugins, Read the 'drop-zones' parameter
+                    var dropZones = visConfig.model.data.dropzone,
+                        editorModel = visConfig.model.data.editormodel;
+
+                    if (dropZones) { // If drop zones are defined
+                        mstrmojo.requiresCls('mstrmojo.' + dropZones);
+                        var zonesClass = mstrmojo.hash.walk(dropZones, mstrmojo);
+                        var docModel = window.mstrApp.docModel;
+                        if (!docModel) {
+                            docModel = new mstrmojo.DocModel({
+                                defn:{epm : visConfig.docDef.epm},
+                                plt: visConfig.docDef.plt,
+                                datasets: {}
+                            });
+                            window.mstrApp.docModel = docModel;
+                        }
+
+                        widget.zonesModel = new zonesClass({
+                            hostId: widget.id,
+                            docModel: docModel,
+                            visModel: widget.model
+                        });
+                        widget.model.docModel = docModel;
+                    } else { // otherwise, use this default dropzone.
+                        var docModel = window.mstrApp.docModel;
+                        if (!docModel) {
+                            docModel = new mstrmojo.DocModel({
+                                defn:{epm : visConfig.docDef.epm},
+                                plt: visConfig.docDef.plt,
+                                datasets: {}
+                            });
+                            window.mstrApp.docModel = docModel;
+                        }
+                        widget.zonesModel = new mstrmojo.vi.models.BaseVisDropZones({
+                            hostId: widget.id,
+                            docModel: docModel,
+                            visModel: widget.model
+                        });
+                        widget.model.docModel = docModel;
+                    }
+
+                    if (editorModel) {
+                        mstrmojo.requiresCls('mstrmojo.' + editorModel);
+                        var ModelClass = mstrmojo.hash.walk(editorModel, mstrmojo);
+                        widget.edtModel = new ModelClass({
+                            hostId: widget.id,
+                            docModel: visConfig.model
+                        });
+                    } else {
+                        EdtModelClass = 'BaseEditorModel';
+                    }
+
                 }else{
                     widget = new ViewClass(visConfig);
                 }
@@ -328,6 +389,36 @@ function setupWidgetLoader() {
 	            if (window.isDebugging) {
 	            	console.log(e.stack);
 	        	}
+                throw e;
+            } finally {
+                widgetConfiguration = null;
+            }
+
+        };
+
+        window.partialUpdate = function partialUpdate() {
+            try {
+                if (window.dataModel && window.docDef){
+                    widgetConfiguration = {
+                      model: window.dataModel,
+                      defn: window.dataDefn,
+                      docDef: window.docDef,
+                      controller: {view: {model: {}}},
+                        isReport: false,
+                        layoutStyles: 'body {background: gray}'
+                    };
+                    if (!window.mstrApp) {
+                        window.mstrApp = {};
+                     }
+                    window.mstrApp.isVI = window.docDef.isVI === 'true' ? true : false;
+                    document.body.style.height = window.widgetHeight + 'px';
+                    document.body.style.width = window.widgetWidth + 'px';
+                    loadModelAndRenderWidget();
+                }
+            } catch (e) {
+                if (window.isDebugging) {
+                    console.log(e.stack);
+                }
                 throw e;
             } finally {
                 widgetConfiguration = null;
@@ -452,13 +543,16 @@ if (window.isUsingMockupData) {
     if (window.dataModel && window.docDef){
         widgetConfiguration = {
        	  model: window.dataModel,
-		  //defn: "",
-          defn: window.dataDefn,
+		  defn: window.dataDefn,
 		  docDef: window.docDef,
  		  controller: {view: {model: {}}},
             isReport: false,
             layoutStyles: 'body {background: gray}'
         };
+        if (!window.mstrApp) {
+            window.mstrApp = {};
+        }
+        window.mstrApp.isVI = window.docDef.isVI === 'true' ? true : false;
         document.body.style.height = window.widgetHeight + 'px';
         document.body.style.width = window.widgetWidth + 'px';
         loadBundle();

@@ -1,1 +1,1 @@
-{ "version" : "v1.3.0", "commit": "094ec35d7f2f656068adde4022ce210d8fec3c62","require": "MSTR 10.3 or higher","others":   "JDK 1.6 or higher and Tomcat 6 or higher"}
+{ "version" : "v1.5.0", "commit": "850fbb00ed6ca172bd65a1625ab6b5bbff5c3720","require": "10.5 Microstrategy","others":   "JDK 1.7 and Tomcat 7"}
